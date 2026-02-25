@@ -5,7 +5,7 @@ export function useSentences() {
   const [activeSentenceIndex, setActiveSentenceIndex] = useState(-1)
 
   const loadSentences = useCallback(async (text: string) => {
-    const texts = await window.germannyAPI.splitSentences(text)
+    const texts = await window.hansListenerAPI.splitSentences(text)
     setSentences(texts)
     setActiveSentenceIndex(-1)
     return texts

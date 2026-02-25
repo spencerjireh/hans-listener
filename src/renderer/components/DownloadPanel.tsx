@@ -15,7 +15,7 @@ export function DownloadPanel({ wavBuffer, disabled }: DownloadPanelProps) {
     if (!wavBuffer) return
     setExporting(true)
     try {
-      await window.germannyAPI.exportAudio(wavBuffer, 'germanny-audio.wav')
+      await window.hansListenerAPI.exportAudio(wavBuffer, 'hans-listener-audio.wav')
     } finally {
       setExporting(false)
     }
@@ -26,7 +26,7 @@ export function DownloadPanel({ wavBuffer, disabled }: DownloadPanelProps) {
     setExporting(true)
     try {
       const mp3 = wavToMp3(wavBuffer)
-      await window.germannyAPI.exportAudio(mp3, 'germanny-audio.mp3')
+      await window.hansListenerAPI.exportAudio(mp3, 'hans-listener-audio.mp3')
     } finally {
       setExporting(false)
     }

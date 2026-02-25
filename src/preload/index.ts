@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '../shared/ipc-channels'
 import type { VoiceInfo, SynthesizeRequest, SynthesisResult, WordTiming } from '../shared/types'
 
-export interface GermannyAPI {
+export interface HansListenerAPI {
   getVoices(): Promise<VoiceInfo[]>
   splitSentences(text: string): Promise<string[]>
   synthesize(req: SynthesizeRequest): Promise<SynthesisResult>
@@ -19,7 +19,7 @@ export interface GermannyAPI {
   exportAudio(buffer: ArrayBuffer, defaultName: string): Promise<boolean>
 }
 
-const api: GermannyAPI = {
+const api: HansListenerAPI = {
   getVoices: () => ipcRenderer.invoke(IPC.GET_VOICES),
   splitSentences: (text) => ipcRenderer.invoke(IPC.SPLIT_SENTENCES, text),
   synthesize: (req) => ipcRenderer.invoke(IPC.SYNTHESIZE, req),
@@ -29,4 +29,4 @@ const api: GermannyAPI = {
     ipcRenderer.invoke(IPC.EXPORT_AUDIO, { buffer, defaultName }),
 }
 
-contextBridge.exposeInMainWorld('germannyAPI', api)
+contextBridge.exposeInMainWorld('hansListenerAPI', api)

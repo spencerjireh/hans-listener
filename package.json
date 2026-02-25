@@ -1,7 +1,7 @@
 {
-  "name": "germanny",
+  "name": "hans-listener",
   "version": "1.0.0",
-  "description": "German language learning via offline TTS",
+  "description": "Offline German text-to-speech for language learners",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

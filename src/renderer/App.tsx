@@ -35,8 +35,8 @@ export default function App() {
   )
 
   useEffect(() => {
-    if (!window.germannyAPI) return
-    window.germannyAPI.getVoices().then((v) => {
+    if (!window.hansListenerAPI) return
+    window.hansListenerAPI.getVoices().then((v) => {
       setVoices(v)
       if (v.length > 0) {
         const defaultVoice = v.find((voice) => voice.id === 'de_DE-thorsten-high')
@@ -68,7 +68,7 @@ export default function App() {
 
     try {
       // Synthesize full text as one audio blob
-      const result = await window.germannyAPI.synthesize({
+      const result = await window.hansListenerAPI.synthesize({
         text,
         voiceId: selectedVoice,
         speed,
@@ -92,21 +92,21 @@ export default function App() {
 
   function handleStop() {
     player.stop()
-    window.germannyAPI.stop()
+    window.hansListenerAPI.stop()
     setCurrentTimings([])
   }
 
   async function handleSentenceSelect(index: number) {
     // Stop whatever is currently playing
     player.stop()
-    window.germannyAPI.stop()
+    window.hansListenerAPI.stop()
 
     setActiveSentenceIndex(index)
     const sentenceText = sentences[index]
     if (!sentenceText) return
 
     try {
-      const result = await window.germannyAPI.synthesizeSentence({
+      const result = await window.hansListenerAPI.synthesizeSentence({
         text: sentenceText,
         voiceId: selectedVoice,
         speed,
@@ -133,7 +133,7 @@ export default function App() {
         {/* Brand */}
         <div className="px-5 pb-4">
           <h1 className="font-display text-2xl tracking-tight text-ink-900">
-            Germanny
+            Hans Listener
           </h1>
           <p className="mt-0.5 text-xs text-ink-400">
             Offline German text-to-speech

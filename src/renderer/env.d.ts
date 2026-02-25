@@ -1,9 +1,9 @@
 /// <reference types="vite/client" />
 
-import type { GermannyAPI } from '../preload/index'
+import type { HansListenerAPI } from '../preload/index'
 
 declare global {
   interface Window {
-    germannyAPI: GermannyAPI
+    hansListenerAPI: HansListenerAPI
   }
 }

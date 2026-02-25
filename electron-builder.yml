@@ -1,5 +1,5 @@
-appId: com.germanny.app
-productName: Germanny
+appId: com.hans-listener.app
+productName: Hans Listener
 directories:
   buildResources: build
   output: dist
