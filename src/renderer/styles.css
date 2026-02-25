@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* ── Bundled offline fonts ─────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('./fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('./fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/dm-serif-display-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/dm-serif-display-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ── Design tokens ─────────────────────────────────────────────────── */
+
+@theme {
+  /* Font families */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'DM Serif Display', ui-serif, Georgia, serif;
+
+  /* Brand -- warm amber-brown */
+  --color-brand-50: #fdf8f0;
+  --color-brand-100: #f9ecd8;
+  --color-brand-200: #f2d5ab;
+  --color-brand-300: #e8b96e;
+  --color-brand-400: #d99b3e;
+  --color-brand-500: #c47f1a;
+  --color-brand-600: #a86814;
+  --color-brand-700: #8b5213;
+  --color-brand-800: #6e4012;
+  --color-brand-900: #4d2d0e;
+
+  /* Ink -- warm charcoal */
+  --color-ink-50: #f7f6f4;
+  --color-ink-100: #eceae6;
+  --color-ink-200: #d5d1ca;
+  --color-ink-300: #b5afa4;
+  --color-ink-400: #8f8677;
+  --color-ink-500: #6e6455;
+  --color-ink-600: #564d40;
+  --color-ink-700: #413a30;
+  --color-ink-800: #2e2922;
+  --color-ink-900: #1c1914;
+
+  /* Surface -- warm paper */
+  --color-surface-50: #fefdfb;
+  --color-surface-100: #faf8f4;
+  --color-surface-200: #f0ece4;
+  --color-surface-300: #e2ddd2;
+
+  /* Accent -- muted teal */
+  --color-accent-50: #f0f7f6;
+  --color-accent-100: #d6edea;
+  --color-accent-200: #aedad4;
+  --color-accent-300: #7ac1b8;
+  --color-accent-400: #4fa69b;
+  --color-accent-500: #378a80;
+  --color-accent-600: #2c6e66;
+  --color-accent-700: #245751;
+
+  /* Danger -- warm red */
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fde3e3;
+  --color-danger-200: #fbc8c8;
+  --color-danger-300: #f7a0a0;
+  --color-danger-400: #ef6b6b;
+  --color-danger-500: #dc3d3d;
+  --color-danger-600: #b92525;
+  --color-danger-700: #911e1e;
+}

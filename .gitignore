@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+
+# Electron-builder output
+release/
+*.dmg
+*.exe
+*.deb
+*.rpm
+*.snap
+*.AppImage
+*.zip
+*.tar.gz
+
+# Piper TTS binaries and voice models (large, downloaded at build time)
+resources/piper/
+resources/voices/
+
+# Vite
+*.local
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# TypeScript incremental compilation
+*.tsbuildinfo

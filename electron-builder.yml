@@ -1,0 +1,28 @@
+appId: com.germanny.app
+productName: Germanny
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+extraResources:
+  - from: resources/piper/${arch}/
+    to: piper/
+    filter:
+      - "**/*"
+  - from: resources/voices/
+    to: voices/
+    filter:
+      - "**/*"
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.education
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
