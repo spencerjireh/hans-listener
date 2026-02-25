@@ -1,0 +1,6 @@
+chatterbox-tts
+fastapi
+uvicorn[standard]
+librosa
+soundfile
+setuptools<71

@@ -1,9 +1,13 @@
+import { ProgressBar } from './ProgressBar'
+import type { SynthesisProgress } from '../../shared/types'
+
 interface PlaybackControlsProps {
   isPlaying: boolean
   isLoading: boolean
   onPlay: () => void
   onStop: () => void
   disabled?: boolean
+  synthesisProgress?: SynthesisProgress | null
 }
 
 export function PlaybackControls({
@@ -12,6 +16,7 @@ export function PlaybackControls({
   onPlay,
   onStop,
   disabled,
+  synthesisProgress,
 }: PlaybackControlsProps) {
   const label = isPlaying
     ? 'Playing...'
@@ -42,7 +47,11 @@ export function PlaybackControls({
           {isLoading ? <Spinner className="h-6 w-6" /> : <PlayIcon className="h-6 w-6" />}
         </button>
       )}
-      <span className="text-xs font-medium text-ink-400">{label}</span>
+      {isLoading && synthesisProgress ? (
+        <ProgressBar progress={synthesisProgress} />
+      ) : (
+        <span className="text-xs font-medium text-ink-400">{label}</span>
+      )}
     </div>
   )
 }

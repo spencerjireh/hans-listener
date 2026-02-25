@@ -5,11 +5,13 @@ import { VoiceSelector } from './components/VoiceSelector'
 import { SpeedSlider } from './components/SpeedSlider'
 import { HighlightedText } from './components/HighlightedText'
 import { SentenceList } from './components/SentenceList'
+import { Sidebar } from './components/Sidebar'
 import { DownloadPanel } from './components/DownloadPanel'
 import { useAudioPlayer } from './hooks/useAudioPlayer'
 import { useHighlighting } from './hooks/useHighlighting'
 import { useSentences } from './hooks/useSentences'
-import type { VoiceInfo, WordTiming } from '../shared/types'
+import { useHistory } from './hooks/useHistory'
+import type { VoiceInfo, WordTiming, SynthesisProgress } from '../shared/types'
 
 export default function App() {
   const [text, setText] = useState('')
@@ -17,10 +19,17 @@ export default function App() {
   const [selectedVoice, setSelectedVoice] = useState('')
   const [speed, setSpeed] = useState(1.0)
   const [isLoading, setIsLoading] = useState(false)
+  const [engineReady, setEngineReady] = useState(false)
   const [currentTimings, setCurrentTimings] = useState<WordTiming[]>([])
   const [fullAudioBuffer, setFullAudioBuffer] = useState<ArrayBuffer | null>(null)
+  const [replayingId, setReplayingId] = useState<string | null>(null)
+  const [replayLoadingId, setReplayLoadingId] = useState<string | null>(null)
+  const [selectedHistoryEntryId, setSelectedHistoryEntryId] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [synthesisProgress, setSynthesisProgress] = useState<SynthesisProgress | null>(null)
 
   const player = useAudioPlayer()
+  const history = useHistory()
   const {
     sentences,
     activeSentenceIndex,
@@ -34,13 +43,32 @@ export default function App() {
     player.isPlaying
   )
 
+  // Poll engine readiness
+  useEffect(() => {
+    if (!window.hansListenerAPI) return
+    if (engineReady) return
+
+    const poll = setInterval(async () => {
+      try {
+        const status = await window.hansListenerAPI.getEngineStatus()
+        if (status.ready) {
+          setEngineReady(true)
+          clearInterval(poll)
+        }
+      } catch {
+        // Keep polling
+      }
+    }, 1000)
+
+    return () => clearInterval(poll)
+  }, [engineReady])
+
   useEffect(() => {
     if (!window.hansListenerAPI) return
     window.hansListenerAPI.getVoices().then((v) => {
       setVoices(v)
       if (v.length > 0) {
-        const defaultVoice = v.find((voice) => voice.id === 'de_DE-thorsten-high')
-        setSelectedVoice(defaultVoice ? defaultVoice.id : v[0].id)
+        setSelectedVoice(v[0].id)
       }
     })
   }, [])
@@ -64,10 +92,39 @@ export default function App() {
   async function handlePlay() {
     if (!text.trim() || !selectedVoice) return
 
+    // Check if any history entry already has this exact synthesis
+    const cachedEntry = history.entries.find(
+      (e) => e.text === text && e.voiceId === selectedVoice && e.speed === speed
+    )
+
+    if (cachedEntry) {
+      setReplayLoadingId(cachedEntry.id)
+      setReplayingId(cachedEntry.id)
+      try {
+        const wavBuffer = await history.loadWav(cachedEntry.id)
+        setFullAudioBuffer(wavBuffer)
+        loadSentences(text)
+        setReplayLoadingId(null)
+        setCurrentTimings(cachedEntry.timings)
+        await player.play(wavBuffer)
+        setCurrentTimings([])
+        setReplayingId(null)
+      } catch (err) {
+        console.error('Cached playback error:', err)
+        setReplayLoadingId(null)
+        setReplayingId(null)
+      }
+      return
+    }
+
+    // Full synthesis path
     setIsLoading(true)
+    setSelectedHistoryEntryId(null)
+    setSynthesisProgress({ stage: 'starting', percent: 0, message: 'Starting synthesis...' })
+
+    window.hansListenerAPI.onSynthesisProgress(setSynthesisProgress)
 
     try {
-      // Synthesize full text as one audio blob
       const result = await window.hansListenerAPI.synthesize({
         text,
         voiceId: selectedVoice,
@@ -75,11 +132,11 @@ export default function App() {
       })
 
       setFullAudioBuffer(result.wavBuffer)
-
-      // Populate sentence list in the background (fire-and-forget)
       loadSentences(text)
+      history.refresh()
 
       setIsLoading(false)
+      setSynthesisProgress(null)
       setCurrentTimings(result.timings)
       await player.play(result.wavBuffer)
       setCurrentTimings([])
@@ -87,6 +144,8 @@ export default function App() {
       console.error('Playback error:', err)
     } finally {
       setIsLoading(false)
+      setSynthesisProgress(null)
+      window.hansListenerAPI.offSynthesisProgress()
     }
   }
 
@@ -94,6 +153,10 @@ export default function App() {
     player.stop()
     window.hansListenerAPI.stop()
     setCurrentTimings([])
+    setReplayingId(null)
+    setReplayLoadingId(null)
+    setSynthesisProgress(null)
+    window.hansListenerAPI.offSynthesisProgress()
   }
 
   async function handleSentenceSelect(index: number) {
@@ -105,6 +168,10 @@ export default function App() {
     const sentenceText = sentences[index]
     if (!sentenceText) return
 
+    setIsLoading(true)
+    setSynthesisProgress({ stage: 'starting', percent: 0, message: 'Starting synthesis...' })
+    window.hansListenerAPI.onSynthesisProgress(setSynthesisProgress)
+
     try {
       const result = await window.hansListenerAPI.synthesizeSentence({
         text: sentenceText,
@@ -113,41 +180,95 @@ export default function App() {
         index,
       })
 
+      setIsLoading(false)
+      setSynthesisProgress(null)
       setCurrentTimings(result.timings)
       await player.play(result.wavBuffer)
       setCurrentTimings([])
     } catch (err) {
       console.error('Sentence playback error:', err)
+    } finally {
+      setIsLoading(false)
+      setSynthesisProgress(null)
+      window.hansListenerAPI.offSynthesisProgress()
     }
   }
 
+  function handleSelectHistoryEntry(entry: { id: string; text: string }) {
+    player.stop()
+    window.hansListenerAPI.stop()
+    setCurrentTimings([])
+    setReplayingId(null)
+    setReplayLoadingId(null)
+
+    setText(entry.text)
+    setSelectedHistoryEntryId(entry.id)
+    loadSentences(entry.text)
+  }
+
+  function handleNewText() {
+    player.stop()
+    window.hansListenerAPI.stop()
+    setCurrentTimings([])
+    setReplayingId(null)
+    setReplayLoadingId(null)
+
+    setText('')
+    setSelectedHistoryEntryId(null)
+    setFullAudioBuffer(null)
+  }
+
   const isPlaying = player.isPlaying
+  const canInteract = engineReady && !isPlaying
+  const canNewText = text.trim().length > 0 || selectedHistoryEntryId !== null
 
   return (
     <div className="flex h-screen">
       {/* -- Sidebar ------------------------------------------------- */}
-      <aside className="flex w-64 shrink-0 flex-col border-r border-surface-300 bg-surface-50">
-        {/* Drag region */}
-        <div className="h-12 shrink-0 [-webkit-app-region:drag]" />
-
-        {/* Brand */}
-        <div className="px-5 pb-4">
-          <h1 className="font-display text-2xl tracking-tight text-ink-900">
-            Hans Listener
-          </h1>
-          <p className="mt-0.5 text-xs text-ink-400">
-            Offline German text-to-speech
-          </p>
-        </div>
-
-      </aside>
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+        entries={history.entries}
+        selectedEntryId={selectedHistoryEntryId}
+        replayingId={replayingId}
+        loadingId={replayLoadingId}
+        onSelectEntry={handleSelectHistoryEntry}
+        onNewText={handleNewText}
+        canNewText={canNewText}
+      />
 
       {/* -- Main content --------------------------------------------- */}
       <main className="flex min-w-0 flex-1 flex-col">
-        {/* Drag region */}
-        <div className="h-12 shrink-0 [-webkit-app-region:drag]" />
+        {/* Drag region with branding */}
+        <div className="flex h-12 shrink-0 items-center px-4 [-webkit-app-region:drag]">
+          <h1 className="font-display text-base tracking-tight text-ink-900">Hans Listener</h1>
+          <span className="ml-2 text-[10px] text-ink-400">Offline German TTS</span>
+        </div>
 
         <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-10 pb-8">
+          {/* Engine loading indicator */}
+          {!engineReady && (
+            <div className="flex items-center justify-center gap-2 rounded-lg border border-surface-300 bg-surface-100 px-4 py-3">
+              <svg
+                className="h-4 w-4 animate-spin text-ink-400"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12" cy="12" r="10"
+                  stroke="currentColor" strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              <span className="text-sm text-ink-500">Loading TTS engine...</span>
+            </div>
+          )}
+
           {/* Hero text input */}
           <TextInput
             value={text}
@@ -162,7 +283,8 @@ export default function App() {
               isLoading={isLoading}
               onPlay={handlePlay}
               onStop={handleStop}
-              disabled={!text.trim() || !selectedVoice}
+              disabled={!engineReady || !text.trim() || !selectedVoice}
+              synthesisProgress={synthesisProgress}
             />
           </div>
 
@@ -172,7 +294,7 @@ export default function App() {
               voices={voices}
               selectedId={selectedVoice}
               onChange={setSelectedVoice}
-              disabled={isPlaying}
+              disabled={!canInteract}
             />
             <div className="h-5 w-px bg-surface-300" />
             <SpeedSlider

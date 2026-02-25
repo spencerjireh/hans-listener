@@ -1,10 +1,8 @@
 export interface VoiceInfo {
   id: string
   name: string
-  quality: 'high' | 'medium' | 'low'
   gender: 'male' | 'female'
-  modelPath: string
-  configPath: string
+  referenceAudioPath: string | null
 }
 
 export interface SynthesizeRequest {
@@ -24,4 +22,24 @@ export interface SynthesisResult {
   wavBuffer: ArrayBuffer
   duration: number
   timings: WordTiming[]
+}
+
+export interface HistoryEntry {
+  id: string
+  text: string
+  voiceId: string
+  voiceName: string
+  speed: number
+  duration: number
+  timings: WordTiming[]
+  wavFilename: string
+  createdAt: string
+}
+
+export type HistoryEntryMeta = Omit<HistoryEntry, 'wavFilename'>
+
+export interface SynthesisProgress {
+  stage: string
+  percent: number
+  message: string
 }

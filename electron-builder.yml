@@ -4,10 +4,14 @@ directories:
   buildResources: build
   output: dist
 files:
-  - out/**/*
+  - out
 extraResources:
-  - from: resources/piper/${arch}/
-    to: piper/
+  - from: resources/chatterbox/${arch}/
+    to: chatterbox/
+    filter:
+      - "**/*"
+  - from: resources/model/
+    to: model/
     filter:
       - "**/*"
   - from: resources/voices/
@@ -19,7 +23,6 @@ mac:
     - target: dmg
       arch:
         - arm64
-        - x64
   category: public.app-category.education
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist

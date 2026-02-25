@@ -23,7 +23,7 @@ export function VoiceSelector({ voices, selectedId, onChange, disabled }: VoiceS
         >
           {voices.map((voice) => (
             <option key={voice.id} value={voice.id}>
-              {voice.name} -- {voice.quality}
+              {voice.name}
             </option>
           ))}
           {voices.length === 0 && (

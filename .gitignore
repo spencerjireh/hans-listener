@@ -16,9 +16,19 @@ release/
 *.zip
 *.tar.gz
 
-# Piper TTS binaries and voice models (large, downloaded at build time)
-resources/piper/
+# Chatterbox TTS sidecar (PyInstaller bundle, built per-architecture)
+resources/chatterbox/
+
+# Chatterbox model weights (~3.1 GB, downloaded at build time)
+resources/model/
+
+# Voice reference clips (downloaded at build time)
 resources/voices/
+
+# Python sidecar build artifacts
+sidecar/.venv/
+sidecar/dist/
+sidecar/build/
 
 # Vite
 *.local

@@ -2,6 +2,8 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc-handlers'
+import { startSidecar, shutdown } from './chatterbox/sidecar-manager'
+import { initHistoryStore } from './history/history-store'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -34,8 +36,15 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await initHistoryStore()
   registerIpcHandlers()
+
+  // Start Chatterbox sidecar (model loads in the background)
+  startSidecar().catch((err) => {
+    console.error('[main] Failed to start Chatterbox sidecar:', err)
+  })
+
   createWindow()
 
   app.on('activate', () => {
@@ -43,6 +52,11 @@ app.whenReady().then(() => {
       createWindow()
     }
   })
+})
+
+app.on('before-quit', (e) => {
+  e.preventDefault()
+  shutdown().finally(() => app.exit(0))
 })
 
 app.on('window-all-closed', () => {
