@@ -54,6 +54,3 @@ npm-debug.log*
 
 # TypeScript incremental compilation
 *.tsbuildinfo
-
-# Claude Code
-CLAUDE.md
