@@ -6,26 +6,30 @@ export interface SidecarSpawnConfig {
   command: string
   args: string[]
   cwd?: string
+  env?: Record<string, string>
 }
 
-export function getChatterboxSpawnConfig(port: number): SidecarSpawnConfig {
-  const modelDir = getModelDir()
-  const baseArgs = ['--port', String(port), '--model-dir', modelDir, '--cfm-steps', '2']
-
+export function getTtsEngineSpawnConfig(port: number): SidecarSpawnConfig {
   if (isDev) {
+    // Dev mode: let mlx-audio download/cache model from HuggingFace automatically
     const sidecarDir = join(process.cwd(), 'sidecar')
     const venvPython = join(sidecarDir, '.venv', 'bin', 'python3')
     return {
       command: venvPython,
-      args: ['server.py', ...baseArgs],
+      args: ['server.py', '--port', String(port)],
       cwd: sidecarDir,
     }
   }
 
-  const binPath = join(process.resourcesPath, 'chatterbox', 'server')
+  // Prod mode: use bundled model from resources
+  const resourcesPath = process.resourcesPath
+  const modelDir = getModelDir()
+  const venvPython = join(resourcesPath, 'tts-engine', 'bin', 'python3')
+  const serverScript = join(resourcesPath, 'tts-engine', 'server.py')
   return {
-    command: binPath,
-    args: baseArgs,
+    command: venvPython,
+    args: [serverScript, '--port', String(port), '--model-dir', modelDir],
+    env: { HF_HUB_OFFLINE: '1' },
   }
 }
 

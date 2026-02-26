@@ -11,26 +11,41 @@ export async function synthesize(
   const voices = discoverVoices()
   const voice = voices.find((v) => v.id === voiceId)
 
-  const referenceAudioPath = voice?.referenceAudioPath ?? null
-
   currentAbort = new AbortController()
   const { signal } = currentAbort
 
-  const res = await fetch(`${getBaseUrl()}/tts`, {
+  // Build OpenAI-compatible request body for Qwen3-TTS
+  const body: Record<string, unknown> = {
+    model: 'Qwen3-TTS',
+    input: text,
+    speed,
+    lang_code: 'German',
+    response_format: 'wav',
+  }
+
+  if (voiceId === '_builtin') {
+    body.voice = 'Chelsie'
+  } else if (voice) {
+    body.voice = 'Chelsie'
+    if (voice.referenceAudioPath) {
+      body.ref_audio = voice.referenceAudioPath
+    }
+    if (voice.refText) {
+      body.ref_text = voice.refText
+    }
+  }
+
+  const res = await fetch(`${getBaseUrl()}/v1/audio/speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      text,
-      reference_audio_path: referenceAudioPath,
-      speed,
-    }),
+    body: JSON.stringify(body),
     signal,
   })
 
   if (!res.ok) {
     currentAbort = null
-    const body = await res.text()
-    throw new Error(`Chatterbox TTS failed (${res.status}): ${body}`)
+    const errBody = await res.text()
+    throw new Error(`TTS synthesis failed (${res.status}): ${errBody}`)
   }
 
   const arrayBuf = await res.arrayBuffer()
@@ -38,23 +53,9 @@ export async function synthesize(
   return Buffer.from(arrayBuf)
 }
 
-export async function fetchProgress(): Promise<{
-  stage: string
-  percent: number
-  message: string
-}> {
-  const res = await fetch(`${getBaseUrl()}/progress`)
-  return res.json()
-}
-
 export function stopSynthesis(): void {
   if (currentAbort) {
     currentAbort.abort()
     currentAbort = null
   }
-
-  // Also tell the server to stop any in-progress generation
-  fetch(`${getBaseUrl()}/cancel`, { method: 'POST' }).catch(() => {
-    // Best-effort -- server may already be idle
-  })
 }

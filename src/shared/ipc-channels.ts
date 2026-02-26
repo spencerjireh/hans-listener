@@ -4,7 +4,6 @@ export const IPC = {
   SYNTHESIZE: 'tts:synthesize',
   SYNTHESIZE_SENTENCE: 'tts:synthesize-sentence',
   STOP: 'tts:stop',
-  SYNTHESIS_PROGRESS: 'tts:synthesis-progress',
 
   // Voices
   GET_VOICES: 'voices:get',

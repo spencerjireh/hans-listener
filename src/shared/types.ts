@@ -3,6 +3,7 @@ export interface VoiceInfo {
   name: string
   gender: 'male' | 'female'
   referenceAudioPath: string | null
+  refText: string | null
 }
 
 export interface SynthesizeRequest {
@@ -37,9 +38,3 @@ export interface HistoryEntry {
 }
 
 export type HistoryEntryMeta = Omit<HistoryEntry, 'wavFilename'>
-
-export interface SynthesisProgress {
-  stage: string
-  percent: number
-  message: string
-}

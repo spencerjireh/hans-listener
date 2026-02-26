@@ -16,10 +16,10 @@ release/
 *.zip
 *.tar.gz
 
-# Chatterbox TTS sidecar (PyInstaller bundle, built per-architecture)
-resources/chatterbox/
+# TTS engine sidecar (venv bundle, built per-architecture)
+resources/tts-engine/
 
-# Chatterbox model weights (~3.1 GB, downloaded at build time)
+# TTS model weights (downloaded at build time)
 resources/model/
 
 # Voice reference clips (downloaded at build time)
@@ -54,3 +54,6 @@ npm-debug.log*
 
 # TypeScript incremental compilation
 *.tsbuildinfo
+
+# Claude Code
+CLAUDE.md

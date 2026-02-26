@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { TextInput } from './components/TextInput'
 import { PlaybackControls } from './components/PlaybackControls'
 import { VoiceSelector } from './components/VoiceSelector'
@@ -11,7 +11,7 @@ import { useAudioPlayer } from './hooks/useAudioPlayer'
 import { useHighlighting } from './hooks/useHighlighting'
 import { useSentences } from './hooks/useSentences'
 import { useHistory } from './hooks/useHistory'
-import type { VoiceInfo, WordTiming, SynthesisProgress } from '../shared/types'
+import type { VoiceInfo, WordTiming } from '../shared/types'
 
 export default function App() {
   const [text, setText] = useState('')
@@ -26,7 +26,6 @@ export default function App() {
   const [replayLoadingId, setReplayLoadingId] = useState<string | null>(null)
   const [selectedHistoryEntryId, setSelectedHistoryEntryId] = useState<string | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [synthesisProgress, setSynthesisProgress] = useState<SynthesisProgress | null>(null)
 
   const player = useAudioPlayer()
   const history = useHistory()
@@ -73,21 +72,29 @@ export default function App() {
     })
   }, [])
 
+  const handlePlayRef = useRef(handlePlay)
+  const handleStopRef = useRef(handleStop)
+
+  useEffect(() => {
+    handlePlayRef.current = handlePlay
+    handleStopRef.current = handleStop
+  })
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        handleStop()
+        handleStopRef.current()
       }
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault()
         if (!player.isPlaying && text.trim()) {
-          handlePlay()
+          handlePlayRef.current()
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  })
+  }, [text, player.isPlaying])
 
   async function handlePlay() {
     if (!text.trim() || !selectedVoice) return
@@ -120,9 +127,6 @@ export default function App() {
     // Full synthesis path
     setIsLoading(true)
     setSelectedHistoryEntryId(null)
-    setSynthesisProgress({ stage: 'starting', percent: 0, message: 'Starting synthesis...' })
-
-    window.hansListenerAPI.onSynthesisProgress(setSynthesisProgress)
 
     try {
       const result = await window.hansListenerAPI.synthesize({
@@ -136,7 +140,6 @@ export default function App() {
       history.refresh()
 
       setIsLoading(false)
-      setSynthesisProgress(null)
       setCurrentTimings(result.timings)
       await player.play(result.wavBuffer)
       setCurrentTimings([])
@@ -144,8 +147,6 @@ export default function App() {
       console.error('Playback error:', err)
     } finally {
       setIsLoading(false)
-      setSynthesisProgress(null)
-      window.hansListenerAPI.offSynthesisProgress()
     }
   }
 
@@ -155,8 +156,6 @@ export default function App() {
     setCurrentTimings([])
     setReplayingId(null)
     setReplayLoadingId(null)
-    setSynthesisProgress(null)
-    window.hansListenerAPI.offSynthesisProgress()
   }
 
   async function handleSentenceSelect(index: number) {
@@ -169,8 +168,6 @@ export default function App() {
     if (!sentenceText) return
 
     setIsLoading(true)
-    setSynthesisProgress({ stage: 'starting', percent: 0, message: 'Starting synthesis...' })
-    window.hansListenerAPI.onSynthesisProgress(setSynthesisProgress)
 
     try {
       const result = await window.hansListenerAPI.synthesizeSentence({
@@ -181,7 +178,6 @@ export default function App() {
       })
 
       setIsLoading(false)
-      setSynthesisProgress(null)
       setCurrentTimings(result.timings)
       await player.play(result.wavBuffer)
       setCurrentTimings([])
@@ -189,8 +185,6 @@ export default function App() {
       console.error('Sentence playback error:', err)
     } finally {
       setIsLoading(false)
-      setSynthesisProgress(null)
-      window.hansListenerAPI.offSynthesisProgress()
     }
   }
 
@@ -284,7 +278,7 @@ export default function App() {
               onPlay={handlePlay}
               onStop={handleStop}
               disabled={!engineReady || !text.trim() || !selectedVoice}
-              synthesisProgress={synthesisProgress}
+              synthesisProgress={null}
             />
           </div>
 

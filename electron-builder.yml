@@ -6,8 +6,8 @@ directories:
 files:
   - out
 extraResources:
-  - from: resources/chatterbox/${arch}/
-    to: chatterbox/
+  - from: resources/tts-engine/${arch}/
+    to: tts-engine/
     filter:
       - "**/*"
   - from: resources/model/

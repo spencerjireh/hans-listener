@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Download curated reference voice clips for Chatterbox zero-shot cloning.
+# Download curated reference voice clips for TTS zero-shot voice cloning.
 # These are short high-quality WAV recordings of German speakers.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

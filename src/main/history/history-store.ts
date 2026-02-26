@@ -2,6 +2,7 @@ import { app } from 'electron'
 import { join } from 'path'
 import { mkdir, readFile, writeFile, rename, unlink, readdir } from 'fs/promises'
 import { randomUUID } from 'crypto'
+import { bufferToArrayBuffer } from '../utils/buffer'
 import type { HistoryEntry, HistoryEntryMeta, WordTiming } from '../../shared/types'
 
 const MAX_ENTRIES = 100
@@ -83,7 +84,7 @@ export async function loadHistoryWav(id: string): Promise<ArrayBuffer> {
   if (!entry) throw new Error(`History entry not found: ${id}`)
 
   const buf = await readFile(join(historyDir, entry.wavFilename))
-  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+  return bufferToArrayBuffer(buf)
 }
 
 async function atomicWriteIndex(): Promise<void> {

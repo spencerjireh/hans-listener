@@ -6,7 +6,6 @@ export function wavToMp3(wavBuffer: ArrayBuffer): ArrayBuffer {
   // Parse WAV header
   const channels = view.getUint16(22, true)
   const sampleRate = view.getUint32(24, true)
-  const bitsPerSample = view.getUint16(34, true)
 
   // PCM data starts at byte 44
   const pcmData = new Int16Array(wavBuffer, 44)

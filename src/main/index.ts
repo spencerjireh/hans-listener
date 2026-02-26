@@ -2,7 +2,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc-handlers'
-import { startSidecar, shutdown } from './chatterbox/sidecar-manager'
+import { startSidecar, shutdown } from './tts-engine/sidecar-manager'
 import { initHistoryStore } from './history/history-store'
 
 function createWindow(): void {
@@ -40,9 +40,9 @@ app.whenReady().then(async () => {
   await initHistoryStore()
   registerIpcHandlers()
 
-  // Start Chatterbox sidecar (model loads in the background)
+  // Start TTS engine sidecar (model loads in the background)
   startSidecar().catch((err) => {
-    console.error('[main] Failed to start Chatterbox sidecar:', err)
+    console.error('[main] Failed to start TTS engine sidecar:', err)
   })
 
   createWindow()
@@ -54,7 +54,10 @@ app.whenReady().then(async () => {
   })
 })
 
+let isShuttingDown = false
 app.on('before-quit', (e) => {
+  if (isShuttingDown) return
+  isShuttingDown = true
   e.preventDefault()
   shutdown().finally(() => app.exit(0))
 })

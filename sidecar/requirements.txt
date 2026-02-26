@@ -1,6 +1,4 @@
-chatterbox-tts
-fastapi
-uvicorn[standard]
+mlx-audio>=0.3.0
 librosa
 soundfile
-setuptools<71
+setuptools<81

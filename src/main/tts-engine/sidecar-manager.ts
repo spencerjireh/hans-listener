@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from 'child_process'
 import { createServer } from 'net'
-import { getChatterboxSpawnConfig } from '../utils/paths'
+import { getTtsEngineSpawnConfig } from '../utils/paths'
 
 let sidecarProcess: ChildProcess | null = null
 let sidecarPort = 0
@@ -36,38 +36,39 @@ export async function startSidecar(): Promise<void> {
 }
 
 function spawnProcess(): void {
-  const config = getChatterboxSpawnConfig(sidecarPort)
+  const config = getTtsEngineSpawnConfig(sidecarPort)
 
-  console.log(`[chatterbox] Spawning: ${config.command} ${config.args.join(' ')}`)
+  console.log(`[tts-engine] Spawning: ${config.command} ${config.args.join(' ')}`)
 
   const proc = spawn(config.command, config.args, {
     stdio: ['ignore', 'pipe', 'pipe'],
     cwd: config.cwd,
+    env: { ...process.env, ...config.env },
   })
 
   proc.stdout?.on('data', (chunk: Buffer) => {
-    process.stdout.write(`[chatterbox] ${chunk}`)
+    process.stdout.write(`[tts-engine] ${chunk}`)
   })
 
   proc.stderr?.on('data', (chunk: Buffer) => {
-    process.stderr.write(`[chatterbox] ${chunk}`)
+    process.stderr.write(`[tts-engine] ${chunk}`)
   })
 
   proc.on('exit', (code) => {
-    console.log(`[chatterbox] Process exited with code ${code}`)
+    console.log(`[tts-engine] Process exited with code ${code}`)
     sidecarProcess = null
     ready = false
 
     if (code !== 0 && code !== null && restartCount < MAX_RESTARTS) {
       restartCount++
       const delay = restartCount * 1000
-      console.log(`[chatterbox] Restarting in ${delay}ms (attempt ${restartCount}/${MAX_RESTARTS})`)
+      console.log(`[tts-engine] Restarting in ${delay}ms (attempt ${restartCount}/${MAX_RESTARTS})`)
       setTimeout(() => spawnProcess(), delay)
     }
   })
 
   proc.on('error', (err) => {
-    console.error('[chatterbox] Failed to start sidecar:', err.message)
+    console.error('[tts-engine] Failed to start sidecar:', err.message)
     sidecarProcess = null
   })
 
@@ -81,7 +82,7 @@ export function waitForReady(): Promise<void> {
 
     const poll = async (): Promise<void> => {
       if (Date.now() - start > maxWait) {
-        reject(new Error('Chatterbox sidecar timed out waiting for model'))
+        reject(new Error('TTS engine sidecar timed out waiting for model'))
         return
       }
 

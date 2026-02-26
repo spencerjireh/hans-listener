@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC } from '../shared/ipc-channels'
-import type { VoiceInfo, SynthesizeRequest, SynthesisResult, WordTiming, HistoryEntryMeta, SynthesisProgress } from '../shared/types'
+import type { VoiceInfo, SynthesizeRequest, SynthesisResult, WordTiming, HistoryEntryMeta } from '../shared/types'
 
 export interface HansListenerAPI {
   getVoices(): Promise<VoiceInfo[]>
@@ -20,8 +20,6 @@ export interface HansListenerAPI {
   exportAudio(buffer: ArrayBuffer, defaultName: string): Promise<boolean>
   getHistory(): Promise<HistoryEntryMeta[]>
   loadHistoryWav(id: string): Promise<ArrayBuffer>
-  onSynthesisProgress(callback: (progress: SynthesisProgress) => void): void
-  offSynthesisProgress(): void
 }
 
 const api: HansListenerAPI = {
@@ -35,12 +33,6 @@ const api: HansListenerAPI = {
     ipcRenderer.invoke(IPC.EXPORT_AUDIO, { buffer, defaultName }),
   getHistory: () => ipcRenderer.invoke(IPC.HISTORY_GET),
   loadHistoryWav: (id) => ipcRenderer.invoke(IPC.HISTORY_LOAD_WAV, id),
-  onSynthesisProgress: (callback) => {
-    ipcRenderer.on(IPC.SYNTHESIS_PROGRESS, (_event, progress) => callback(progress))
-  },
-  offSynthesisProgress: () => {
-    ipcRenderer.removeAllListeners(IPC.SYNTHESIS_PROGRESS)
-  },
 }
 
 contextBridge.exposeInMainWorld('hansListenerAPI', api)
