@@ -33,7 +33,7 @@ uv venv "$BUNDLE_VENV"
 source "$BUNDLE_VENV/bin/activate"
 
 echo "==> Installing dependencies..."
-uv pip install -r requirements.txt
+uv pip install --prerelease=allow -r requirements.txt
 
 echo "==> Copying venv + server to output..."
 rm -rf "$OUTPUT_DIR"
