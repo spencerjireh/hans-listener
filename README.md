@@ -2,16 +2,23 @@
 
 Offline German text-to-speech desktop app for language learners. Paste or type German text, hear it spoken aloud with karaoke-style word highlighting, and navigate sentence by sentence at your own pace.
 
-Built with Electron, React, and [Piper TTS](https://github.com/rhasspy/piper) -- everything runs locally, no internet required.
+Built with Electron, React, and Qwen3-TTS (via mlx-audio) -- everything runs locally on Apple Silicon, no internet required after first launch.
+
+## Download
+
+[Hans Listener v1.0.0 (macOS arm64)](https://pub-ffa24752e25649c1988600fbdf2a7795.r2.dev/hans-listener-1.0.0-arm64.dmg) -- 2.3 GB
+
+> Requires Apple Silicon (M1+). On first launch the TTS model will initialize, which may take a couple of minutes.
 
 ## Features
 
-- Offline TTS powered by Piper with multiple German voices
-- Word-level highlighting synced to audio playback
+- Offline TTS powered by Qwen3-TTS with zero-shot voice cloning
+- Word-level karaoke highlighting synced to audio playback
 - Sentence-by-sentence navigation for focused listening
-- Adjustable playback speed
+- Adjustable playback speed (0.5x--2.0x)
 - MP3/WAV export of synthesized audio
-- macOS native app (arm64 + x64)
+- History with cached audio for previously synthesized text
+- macOS native app (arm64)
 
 ## Development
 
@@ -20,7 +27,11 @@ npm install
 npm run dev
 ```
 
-Piper binaries and voice models go in `resources/piper/` and `resources/voices/` respectively (gitignored). See the [Piper releases](https://github.com/rhasspy/piper/releases) for downloads.
+The Python sidecar (`sidecar/server.py`) runs automatically when the Electron app starts. To run it standalone:
+
+```bash
+cd sidecar && source .venv/bin/activate && python server.py
+```
 
 ## Build
 
@@ -32,7 +43,7 @@ Produces a `.dmg` in `dist/`.
 
 ## Stack
 
-Electron + electron-vite | React 18 | Tailwind CSS 4 | Piper TTS | lamejs
+Electron + electron-vite | React 18 | Tailwind CSS 4 | Qwen3-TTS + mlx-audio | lamejs
 
 ## License
 
